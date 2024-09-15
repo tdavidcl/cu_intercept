@@ -6,3 +6,4 @@ Makefile
 *.so
 cuintercept_test
 compile_commands.json
+build
