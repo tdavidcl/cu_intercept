@@ -11,11 +11,15 @@ endif()
 #enable export compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_library(cuintercept SHARED src/lib.cpp)
+add_library(cuintercept SHARED 
+    src/lib.cpp 
+    src/dlsym_hook.cpp
+    src/cuda_hook.cpp
+    )
 set(LIBRARY_COMPILE_FLAGS -shared -fPIC -g -D_GNU_SOURCE -Wall)
 include_directories(${CUDA_HOME}/include)
 target_compile_options(cuintercept PUBLIC ${LIBRARY_COMPILE_FLAGS})
-target_link_libraries(cuintercept PUBLIC -lcuda -lnvidia-ml)
+target_link_libraries(cuintercept PUBLIC -lcuda)
 
 
 

@@ -1,64 +1,41 @@
+
 #include <string>
 #define _GNU_SOURCE
+#include "cuda_hook.hpp"
+#include "dlsym_hook.hpp"
+#include <dlfcn.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <dlfcn.h>
-#include <cuda.h>
 #include <cstring>
+#include "hook_malloc.hpp"
 
 
 
-using fp_dlsym  = void * (*)(void *, const char *);
+void *get_cu_get_proc_hook(CUresult *res, const char *symbol,
+    unsigned int flags,
+    cuuint64_t version);
 
-#define STRINGIFY(x) #x
-#define CUDA_SYMBOL_STRING(x) STRINGIFY(x)
+CUresult cuGetProcAddress(
+    const char *symbol,
+    void **funcPtr,
+    unsigned int flags,
+    cuuint64_t version,
+    CUdriverProcAddressQueryResult *symbolStatus) {
 
-
-// Function pointer to the real cuGetProcAddress
-typedef CUresult (*cuGetProcAddress_t)(const char *, void **, unsigned int, cuuint64_t,
-                             CUdriverProcAddressQueryResult *);
-static cuGetProcAddress_t real_cuGetProcAddress = NULL;
-
-void load_cuda(fp_dlsym real_dlsym){
-
-    static bool done = false;
-    if (done) {
-        return;
-    }
-
-    void *table = NULL;
-
-    printf(" --- Start hijacking --- \n");
-
-    std::string cuda_filename = "libcuda.so.1";
-
-    table = dlopen(cuda_filename.c_str(), RTLD_NOW | RTLD_NODELETE);
-    if (!table) {
-        printf("can't find library %s", cuda_filename.c_str());
-    }
-
-    if (!real_cuGetProcAddress) {
-        real_cuGetProcAddress = (cuGetProcAddress_t)real_dlsym(table, "cuGetProcAddress_v2");
-        if (!real_cuGetProcAddress) {
-            fprintf(stderr, "Error loading original cuGetProcAddress: %s\n", dlerror());
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    dlclose(table);
-}
-
-CUresult cuGetProcAddress(const char *symbol, void **funcPtr, unsigned int flags, cuuint64_t version,
-                             CUdriverProcAddressQueryResult *symbolStatus) {
-
-    printf("Intercepted cuGetProcAddress: Requesting symbol %s\n", symbol);
+    printf("Intercepted cuGetProcAddress: Requesting symbol %s (flags=%u, version=%lu)\n", symbol,flags,version);
 
     // Call the original cuGetProcAddress to actually resolve the symbol
-    CUresult result = real_cuGetProcAddress(symbol, funcPtr, flags, version,symbolStatus);
+    CUresult result = real_cuGetProcAddress(symbol, funcPtr, flags, version, symbolStatus);
 
-    // Optionally, log the result
-    if (result == CUDA_SUCCESS) {
-        printf("    cuGetProcAddress successful: Resolved symbol %s to address %p\n", symbol, *funcPtr);
+    void *ret = get_cu_get_proc_hook(&result, symbol, flags, version);
+    if (ret != nullptr) {
+        printf("    cuGetProcAddress hook : replace %s ptr=%p to ptr=%p\n", symbol, *funcPtr, ret);
+        *funcPtr = ret;
+        result   = CUDA_SUCCESS;
+    } else if (result == CUDA_SUCCESS) {
+        // printf(
+        //     "    cuGetProcAddress successful: Resolved symbol %s to address
+        //     %p\n", symbol, *funcPtr);
     } else {
         printf("    cuGetProcAddress failed with error code %d\n", result);
     }
@@ -66,49 +43,43 @@ CUresult cuGetProcAddress(const char *symbol, void **funcPtr, unsigned int flags
     return result;
 }
 
+void *get_cu_get_proc_hook(CUresult *res, const char *symbol,
+    unsigned int flags,
+    cuuint64_t version) {
 
-void* __dlsym_hook_section(void* handle, const char* symbol, fp_dlsym real_dlsym){
+    if (!strcmp(symbol, "cuGetProcAddress")) {
+        cuGetProcAddress_t new_addr = &cuGetProcAddress;
+        return (void *) new_addr;
+    }
+    
+    //else if (!strcmp(symbol, "cuMemAlloc")) {
+    //    auto new_addr = &hooked_cuMemAlloc;
+    //    return (void *) new_addr;
+    //}
 
+    return nullptr;
+}
+
+void *__dlsym_hook_section(void *handle, const char *symbol, fp_dlsym real_dlsym) {
 
     if (strcmp(symbol, CUDA_SYMBOL_STRING(cuGetProcAddress_v2)) == 0) {
-        printf("Applying dlsym hook: Requesting symbol %s\n", symbol);
+        printf(" --- Applying dlsym hook: Requesting symbol %s\n", symbol);
         cuGetProcAddress_t new_addr = &cuGetProcAddress;
-        return (void*) new_addr;
+        return (void *) new_addr;
     }
 
-    return real_dlsym(handle,symbol);
-    
+    return real_dlsym(handle, symbol);
 
     return NULL;
 }
 
-
-
-#define FUNC_ATTR_VISIBLE  __attribute__((visibility("default"))) 
-FUNC_ATTR_VISIBLE void *dlsym(void *handle, const char *symbol)
-{
-    printf("Intercepted dlsym: Requesting symbol %s\n", symbol);
-
-    
-    fp_dlsym real_dlsym =NULL;
-    if (real_dlsym == NULL)
-        real_dlsym=(fp_dlsym) dlvsym(RTLD_NEXT, "dlsym", "GLIBC_2.2.5");
-
-
+void* dlsym_callback(void *handle, const char *symbol, fp_dlsym real_dlsym){
     if (strcmp(symbol, CUDA_SYMBOL_STRING(cuGetProcAddress_v2)) == 0) {
-        printf("Intercepting cuGetProcAddress_v2 via dlsym!\n");
         load_cuda(real_dlsym);
-        void* f = __dlsym_hook_section(handle, symbol, real_dlsym);
+        void *f = __dlsym_hook_section(handle, symbol, real_dlsym);
         if (f != NULL)
             return f;
     }
 
-    /* my target binary is even asking for dlsym() via dlsym()... */
-    if (!strcmp(symbol,"dlsym")) 
-        return (void*)dlsym;
-
-    return real_dlsym(handle,symbol);
+    return NULL;
 }
-
-
-
