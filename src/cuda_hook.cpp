@@ -68,4 +68,5 @@ void load_cuda(fp_dlsym real_dlsym) {
     dlclose(table);
 
     printf(" --- hijacking initialized --- \n");
+    done = true;
 }

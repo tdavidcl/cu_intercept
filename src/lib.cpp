@@ -64,7 +64,8 @@ void *get_cu_get_proc_hook(CUresult *res, const char *symbol,
     return nullptr;
 }
 
-void *__dlsym_hook_section(void *handle, const char *symbol, fp_dlsym real_dlsym) {
+void* dlsym_callback(void *handle, const char *symbol, fp_dlsym real_dlsym){
+    load_cuda(real_dlsym);
 
     if (strcmp(symbol, CUDA_SYMBOL_STRING(cuGetProcAddress_v2)) == 0) {
         printf(" --- Applying dlsym hook: Requesting symbol %s\n", symbol);
@@ -72,17 +73,16 @@ void *__dlsym_hook_section(void *handle, const char *symbol, fp_dlsym real_dlsym
         return (void *) new_addr;
     }
 
-    return real_dlsym(handle, symbol);
+    if (strcmp(symbol, "cuMemAlloc") == 0) {
+        printf(" --- Applying dlsym hook: Requesting symbol %s\n", symbol);
+        auto new_addr = &hooked_cuMemAlloc;
+        return (void *) new_addr;
+    }
 
-    return NULL;
-}
-
-void* dlsym_callback(void *handle, const char *symbol, fp_dlsym real_dlsym){
-    if (strcmp(symbol, CUDA_SYMBOL_STRING(cuGetProcAddress_v2)) == 0) {
-        load_cuda(real_dlsym);
-        void *f = __dlsym_hook_section(handle, symbol, real_dlsym);
-        if (f != NULL)
-            return f;
+    if (strcmp(symbol, CUDA_SYMBOL_STRING(cuMemAlloc_v2)) == 0) {
+        printf(" --- Applying dlsym hook: Requesting symbol %s\n", symbol);
+        auto new_addr = &hooked_cuMemAlloc;
+        return (void *) new_addr;
     }
 
     return NULL;

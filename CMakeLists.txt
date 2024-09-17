@@ -15,8 +15,11 @@ add_library(cuintercept SHARED
     src/lib.cpp 
     src/dlsym_hook.cpp
     src/cuda_hook.cpp
+    src/backtrace.cpp
+    src/alloc_map.cpp
     )
-set(LIBRARY_COMPILE_FLAGS -shared -fPIC -g -D_GNU_SOURCE -Wall)
+
+set(LIBRARY_COMPILE_FLAGS -shared -fPIC -g -rdynamic -D_GNU_SOURCE -Wall)
 include_directories(${CUDA_HOME}/include)
 target_compile_options(cuintercept PUBLIC ${LIBRARY_COMPILE_FLAGS})
 target_link_libraries(cuintercept PUBLIC -lcuda)
@@ -24,5 +27,5 @@ target_link_libraries(cuintercept PUBLIC -lcuda)
 
 add_executable(intercept_test test/test.cu)
 set_target_properties(intercept_test PROPERTIES CUDA_ARCHITECTURES "72")
-target_compile_options(intercept_test PUBLIC -g)
+target_compile_options(intercept_test PUBLIC -g -rdynamic)
 

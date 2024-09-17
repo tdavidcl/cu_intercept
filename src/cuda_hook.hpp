@@ -1,4 +1,4 @@
-
+#pragma once
 #include <cuda.h>
 #include "dlsym_hook.hpp"
 
