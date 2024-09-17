@@ -6,6 +6,7 @@ cuGetProcAddress_t real_cuGetProcAddress = NULL;
 
 
 fp_cumemalloc real_cuMemAlloc = NULL;
+fp_cumemfree real_cuMemFree = NULL;
 
 void load_cuda(fp_dlsym real_dlsym) {
 
@@ -35,9 +36,31 @@ void load_cuda(fp_dlsym real_dlsym) {
 
 
     if (!real_cuMemAlloc) {
-        real_cuMemAlloc = (fp_cumemalloc) real_dlsym(table, "cuMemAlloc");
+        void * res;
+        CUdriverProcAddressQueryResult_enum ret;
+        real_cuGetProcAddress("cuMemAlloc", &res, 3020, 0, &ret);
+
+        if(res != NULL){
+            real_cuMemAlloc = (fp_cumemalloc) res;
+        }
+
         if (!real_cuMemAlloc) {
             fprintf(stderr, "Error loading original cuMemAlloc: %s\n", dlerror());
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (!real_cuMemFree) {
+        void * res;
+        CUdriverProcAddressQueryResult_enum ret;
+        real_cuGetProcAddress("cuMemFree", &res, 3020, 0, &ret);
+
+        if(res != NULL){
+            real_cuMemFree = (fp_cumemfree) res;
+        }
+
+        if (!real_cuMemFree) {
+            fprintf(stderr, "Error loading original cuMemFree: %s\n", dlerror());
             exit(EXIT_FAILURE);
         }
     }

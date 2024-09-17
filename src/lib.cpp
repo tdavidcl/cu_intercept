@@ -52,10 +52,14 @@ void *get_cu_get_proc_hook(CUresult *res, const char *symbol,
         return (void *) new_addr;
     }
     
-    //else if (!strcmp(symbol, "cuMemAlloc")) {
-    //    auto new_addr = &hooked_cuMemAlloc;
-    //    return (void *) new_addr;
-    //}
+    else if (!strcmp(symbol, "cuMemAlloc")) {
+        auto new_addr = &hooked_cuMemAlloc;
+        return (void *) new_addr;
+    }
+    else if (!strcmp(symbol, "cuMemFree")) {
+        auto new_addr = &hooked_cuMemFree;
+        return (void *) new_addr;
+    }
 
     return nullptr;
 }

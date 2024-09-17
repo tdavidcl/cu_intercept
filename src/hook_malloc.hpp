@@ -3,10 +3,17 @@
 
 
 inline CUresult hooked_cuMemAlloc(CUdeviceptr *dptr, size_t bytesize){
-    printf("hijacking cuMemAlloc!\n");
 
-    using fp_real = CUresult (*)(CUdeviceptr *, size_t);
-    
+    auto res = real_cuMemAlloc(dptr, bytesize);
+    printf("-- cuMemAlloc %p %lu\n", *dptr, bytesize);
 
-    return real_cuMemAlloc(dptr, bytesize);
+    return res;
+}
+
+inline CUresult hooked_cuMemFree(CUdeviceptr dptr){
+
+    auto res = real_cuMemFree(dptr);
+    printf("-- cuMemFree %p\n", dptr);
+
+    return res;
 }

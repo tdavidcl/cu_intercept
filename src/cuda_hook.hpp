@@ -15,4 +15,8 @@ extern cuGetProcAddress_t real_cuGetProcAddress;
 using fp_cumemalloc = CUresult (*)(CUdeviceptr *, size_t); 
 extern fp_cumemalloc real_cuMemAlloc;
 
+
+using fp_cumemfree = CUresult (*)(CUdeviceptr ); 
+extern fp_cumemfree real_cuMemFree;
+
 void load_cuda(fp_dlsym real_dlsym);
