@@ -4,6 +4,8 @@
 #include <mutex>
 #include <string>
 #include <iostream>
+#include <unistd.h>
+
 
 std::mutex alloc_map_mutex;
 std::unordered_map<CUdeviceptr, AllocInfo> cuda_alloc_map;
@@ -40,9 +42,9 @@ std::mutex file_mutex;
 void file_write_total(){
 
     std::lock_guard<std::mutex> guard(file_mutex);
-    static std::ofstream out("output.txt");
+    static std::ofstream out("output."+std::to_string(getpid())+".txt");
 
-    out << get_sec_elapsed()  << " " << get_total_alloc() << "\n";
+    out << std::to_string(get_sec_elapsed()) + " " + std::to_string(get_total_alloc()) + "\n";
 }
 
 
@@ -58,8 +60,8 @@ void register_alloc(CUdeviceptr ptr, size_t bytesize, Backtrace bt){
     
     printf(" -- Cuda alloc ptr=%p size=%lu | total mem = %lu\n",ptr,bytesize,get_total_alloc());
     file_write_total();
-    print_alloc_map();
-    print_bt();
+    //print_alloc_map();
+    //print_bt();
 }
 
 void register_free(CUdeviceptr ptr){
