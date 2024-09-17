@@ -22,7 +22,7 @@ target_compile_options(cuintercept PUBLIC ${LIBRARY_COMPILE_FLAGS})
 target_link_libraries(cuintercept PUBLIC -lcuda)
 
 
-
 add_executable(intercept_test test/test.cu)
 set_target_properties(intercept_test PROPERTIES CUDA_ARCHITECTURES "72")
+target_compile_options(intercept_test PUBLIC -g)
 
