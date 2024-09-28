@@ -1,0 +1,43 @@
+name: Linux
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  testing:
+    name: linux ${{ matrix.os }}, CUDA ${{matrix.cuda}}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-22.04]
+        cuda: [11.0.2]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: install CUDA
+      run: |
+        mkdir -p /opt/AdaptiveCpp/cuda
+        wget -q -O cuda.sh http://developer.download.nvidia.com/compute/cuda/11.0.2/local_installers/cuda_11.0.2_450.51.05_linux.run
+        sudo sh ./cuda.sh --override --silent --toolkit --no-man-page --no-drm --no-opengl-libs --installpath=/opt/cuda || true
+        echo "CUDA Version ${{matrix.cuda}}" | sudo tee /opt/cuda/version.txt
+        
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    #- name: Test
+    #  working-directory: ${{github.workspace}}/build
+    #  # Execute tests defined by the CMake configuration.
+    #  # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+    #  run: ctest -C ${{env.BUILD_TYPE}}
+
