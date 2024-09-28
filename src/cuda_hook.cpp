@@ -37,9 +37,12 @@ void load_cuda(fp_dlsym real_dlsym) {
 
     if (!real_cuMemAlloc) {
         void * res;
+        #if(CUDA_VERSION < 12000)
+        real_cuGetProcAddress("cuMemAlloc", &res, 3020, 0);
+        #else
         CUdriverProcAddressQueryResult_enum ret;
         real_cuGetProcAddress("cuMemAlloc", &res, 3020, 0, &ret);
-
+        #endif
         if(res != NULL){
             real_cuMemAlloc = (fp_cumemalloc) res;
         }
@@ -52,8 +55,12 @@ void load_cuda(fp_dlsym real_dlsym) {
 
     if (!real_cuMemFree) {
         void * res;
+        #if(CUDA_VERSION < 12000)
+        real_cuGetProcAddress("cuMemFree", &res, 3020, 0);
+        #else
         CUdriverProcAddressQueryResult_enum ret;
         real_cuGetProcAddress("cuMemFree", &res, 3020, 0, &ret);
+        #endif
 
         if(res != NULL){
             real_cuMemFree = (fp_cumemfree) res;
