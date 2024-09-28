@@ -12,6 +12,10 @@ env:
 
 jobs:
   testing:
+
+    # This thing is not yet functionnal
+    if: false
+
     name: linux ${{ matrix.os }}, CUDA ${{matrix.cuda}}
     runs-on: ${{ matrix.os }}
     strategy:
