@@ -15,6 +15,35 @@ void *get_cu_get_proc_hook(CUresult *res, const char *symbol,
     unsigned int flags,
     cuuint64_t version);
 
+
+#if(CUDA_VERSION < 12000)
+CUresult cuGetProcAddress(
+    const char *symbol,
+    void **funcPtr,
+    unsigned int flags,
+    cuuint64_t version) {
+
+    printf("Intercepted cuGetProcAddress: Requesting symbol %s (flags=%u, version=%lu)\n", symbol,flags,version);
+
+    // Call the original cuGetProcAddress to actually resolve the symbol
+    CUresult result = real_cuGetProcAddress(symbol, funcPtr, flags, version);
+
+    void *ret = get_cu_get_proc_hook(&result, symbol, flags, version);
+    if (ret != nullptr) {
+        printf("    cuGetProcAddress hook : replace %s ptr=%p to ptr=%p\n", symbol, *funcPtr, ret);
+        *funcPtr = ret;
+        result   = CUDA_SUCCESS;
+    } else if (result == CUDA_SUCCESS) {
+        // printf(
+        //     "    cuGetProcAddress successful: Resolved symbol %s to address
+        //     %p\n", symbol, *funcPtr);
+    } else {
+        printf("    cuGetProcAddress failed with error code %d\n", result);
+    }
+
+    return result;
+}
+#else
 CUresult cuGetProcAddress(
     const char *symbol,
     void **funcPtr,
@@ -42,6 +71,7 @@ CUresult cuGetProcAddress(
 
     return result;
 }
+#endif
 
 void *get_cu_get_proc_hook(CUresult *res, const char *symbol,
     unsigned int flags,

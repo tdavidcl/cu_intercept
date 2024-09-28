@@ -6,8 +6,13 @@
 #define CUDA_SYMBOL_STRING(x) STRINGIFY(x)
 
 // Function pointer to the real cuGetProcAddress
+#if(CUDA_VERSION < 12000)
+typedef CUresult (*cuGetProcAddress_t)(
+    const char *, void **, unsigned int, cuuint64_t);
+#else
 typedef CUresult (*cuGetProcAddress_t)(
     const char *, void **, unsigned int, cuuint64_t, CUdriverProcAddressQueryResult *);
+#endif
 
 extern cuGetProcAddress_t real_cuGetProcAddress;
 
