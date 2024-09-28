@@ -30,7 +30,7 @@ jobs:
         echo "CUDA Version ${{matrix.cuda}}" | sudo tee /opt/cuda/version.txt
         
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CUDA_ARCHITECTURES=7.0
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CUDA_ARCHITECTURES=all-major
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
