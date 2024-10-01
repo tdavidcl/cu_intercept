@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(cuintercept CXX CUDA)
 
-
 if (NOT DEFINED ENV{CUDA_HOME})
     set(CUDA_HOME /opt/cuda)
 else()

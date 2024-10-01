@@ -27,12 +27,11 @@ jobs:
       run: |
         mkdir -p /opt/AdaptiveCpp/cuda
         wget -q -O cuda.sh http://developer.download.nvidia.com/compute/cuda/11.0.2/local_installers/cuda_11.0.2_450.51.05_linux.run
-        sudo sh ./cuda.sh --override --silent --toolkit --no-man-page --no-drm --no-opengl-libs --installpath=/opt/cuda || true
+        sudo sh ./cuda.sh --override --toolkit --no-man-page --no-drm --no-opengl-libs --installpath=/opt/cuda || true
         echo "CUDA Version ${{matrix.cuda}}" | sudo tee /opt/cuda/version.txt
         
     - name: Configure CMake
       run: |
-        export CUDACXX=/opt/cuda/bin/nvcc
         cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CUDA_ARCHITECTURES=all-major
 
     - name: Build
