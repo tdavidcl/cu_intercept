@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.10)
-project(cuintercept CXX CUDA)
 
 if (NOT DEFINED ENV{CUDA_HOME})
     set(CUDA_HOME /opt/cuda)
@@ -10,6 +9,8 @@ endif()
 if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
   set(CMAKE_CUDA_ARCHITECTURES 70)
 endif()
+
+project(cuintercept CXX CUDA)
 
 #enable export compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
