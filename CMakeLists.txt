@@ -24,7 +24,8 @@ add_library(cuintercept SHARED
     )
 
 set(LIBRARY_COMPILE_FLAGS -shared -fPIC -g -rdynamic -D_GNU_SOURCE -Wall)
-include_directories(${CUDA_HOME}/include)
+#include_directories(${CUDA_HOME}/include)
+include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 target_compile_options(cuintercept PUBLIC ${LIBRARY_COMPILE_FLAGS})
 target_link_libraries(cuintercept PUBLIC -lcuda)
 
