@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-22.04]
-        cuda: [11.0.2]
+        cuda: [12.5.0,11.0.2]
 
     steps:
     - uses: actions/checkout@v4
@@ -26,7 +26,9 @@ jobs:
     - uses: Jimver/cuda-toolkit@v0.2.17
       id: cuda-toolkit
       with:
-        cuda: '12.5.0'
+        method: 'network'
+        linux-local-args: '["--toolkit"]'
+        cuda: ${{matrix.cuda}}
 
     - name: Configure CMake
       run: |
