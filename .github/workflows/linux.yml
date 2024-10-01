@@ -21,7 +21,12 @@ jobs:
 
     strategy:
       matrix:
-        container: ["nvidia/cuda:12.6.1-devel-ubuntu22.04"]
+        container: [
+          "nvidia/cuda:12.6.1-devel-ubuntu20.04",
+          "nvidia/cuda:12.6.1-devel-ubuntu22.04",
+          "nvidia/cuda:12.6.1-devel-ubuntu24.04",
+          "nvidia/cuda:11.2.2-devel-ubuntu22.04",
+          ]
 
     steps:
     - uses: actions/checkout@v4
