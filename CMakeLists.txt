@@ -7,6 +7,10 @@ else()
     set(CUDA_HOME $ENV{CUDA_HOME})
 endif()
 
+if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+  set(CMAKE_CUDA_ARCHITECTURES 70)
+endif()
+
 #enable export compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
